@@ -45,7 +45,7 @@ def trade(training_data , testing_data):
     inputs = dataset_total[len(dataset_total) - len(testing_data.iloc[:,0]) - 10:].values
     X_test = []
     print(len(inputs))
-    for i in range(100):
+    for i in range(100+len(testing_data)-10):
             # X_test.append(testing_data.iloc[i:i+10,0].values)
             X_test.append(dataset_total.iloc[i:i+10].values)
     X_test = np.array(X_test)
@@ -56,17 +56,18 @@ def trade(training_data , testing_data):
     
     model = lstm_stock_model(X_train.shape)
     callback = EarlyStopping(monitor="mean_absolute_error", patience=10, verbose=1, mode="auto")
-    history = model.fit(X_train, Y_train, epochs=30, batch_size=5, validation_split=0.1, callbacks=[callback],shuffle=True)
+    history = model.fit(X_train, Y_train, epochs=40, batch_size=5, validation_split=0.1, callbacks=[callback],shuffle=True)
 
     # model.save("model.h5")
     # model = keras.models.load_model("model.h5")
     predict_price = model.predict(X_test)
     predict_price = predict_price[-20:]
-    # plt.figure(1)
-    # plt.plot(predict_price[-20:], 'blue')
+    plt.figure(1)
+    plt.plot(predict_price[-20:], 'blue')
     answer = []
     unit = 0
-    for i in range(19):
+    print(len(testing_data))
+    for i in range(len(testing_data)-1):
         if predict_price[i] > predict_price[i+1]: # slump going to sell
             if unit == 0: # no stock
                 answer.append(-1) # sell or short
@@ -128,4 +129,4 @@ if __name__ == '__main__':
     testing_data = pd.read_csv(args.testing, header=None)
     output = trade(training_data, testing_data)
     output.to_csv(args.output , header=False, index=False)
-    # plt.show()
+    plt.show()
